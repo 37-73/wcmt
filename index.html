@@ -24,6 +24,9 @@
 
 <div class="max-w-6xl mx-auto space-y-6">
     <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-3xl font-black text-white italic uppercase tracking-tighter">Camera Lab <span class="text-blue-500 block text-xs not-italic tracking-widest mt-1">Forensic Analysis Kit</span></h1>
+        </div>
         <div id="status" class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800">
             <span id="statusDot" class="w-3 h-3 rounded-full bg-red-500"></span>
             <span id="statusText" class="text-xs font-bold uppercase tracking-wider text-slate-300">Wait for Init</span>
@@ -77,19 +80,23 @@
                 </div>
 
                 <div class="space-y-2">
-                    <div class="text-[10px] text-blue-500 uppercase font-bold px-1 tracking-widest">Hardware Capabilities</div>
+                    <div class="text-[10px] text-blue-500 uppercase font-bold px-1 tracking-widest text-shadow-sm">Hardware Capabilities</div>
                     <div id="m-caps" class="text-[11px] font-mono bg-black/40 p-3 rounded-xl border border-slate-800 overflow-y-auto max-h-[180px]">
                         Locked.
                     </div>
                 </div>
             </div>
 
-            <div id="xr-card" class="metric-card p-5 rounded-2xl space-y-4 border-l-4 border-l-slate-800">
-                <div class="text-[10px] text-emerald-500 uppercase font-black px-1 tracking-widest">Spatial Analysis (WebXR)</div>
+            <div id="xr-card" class="metric-card p-5 rounded-2xl space-y-4 border-l-4 border-l-slate-800 transition-all">
+                <div class="text-[10px] text-emerald-500 uppercase font-black px-1 tracking-widest">Spatial Analysis</div>
                 <div class="space-y-1 text-[11px] font-mono">
-                    <div class="flex justify-between py-1"><span>API:</span><span id="xr-supported" class="text-slate-400">?</span></div>
-                    <div class="flex justify-between py-1"><span>AR Ready:</span><span id="xr-ar-ready" class="text-slate-400">?</span></div>
-                    <div class="flex justify-between py-1"><span>Depth Sens:</span><span id="xr-depth" class="text-slate-400">?</span></div>
+                    <div class="flex justify-between py-1"><span>WebXR API:</span><span id="xr-supported" class="text-slate-400 font-bold">?</span></div>
+                    <div class="flex justify-between py-1"><span>AR Ready:</span><span id="xr-ar-ready" class="text-slate-400 font-bold">?</span></div>
+                    <div class="flex justify-between py-1"><span>Depth Sens:</span><span id="xr-depth" class="text-slate-400 font-bold">?</span></div>
+                    <div class="flex justify-between py-1 border-t border-white/5 mt-1 pt-1">
+                        <span class="text-slate-500">Quick Look (iOS):</span>
+                        <span id="ar-ql" class="text-slate-400 font-bold">?</span>
+                    </div>
                 </div>
                 <button id="checkXrBtn" class="w-full py-3 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-500 text-[10px] font-black uppercase rounded-xl transition-all">
                     Run Depth Probe
@@ -133,7 +140,9 @@
 
             stream.getTracks().forEach(t => t.stop());
             if (videoInputs.length > 0) start(videoInputs[0].deviceId);
+            
             checkWebXR();
+            checkARQuickLook();
         } catch (e) { statusText.textContent = "Denied"; }
     }
 
@@ -163,7 +172,7 @@
             const caps = track.getCapabilities();
             mCaps.innerHTML = formatObject(caps);
         } else {
-            mCaps.innerHTML = "<span class='text-red-400 italic'>Capabilities API not supported by this browser.</span>";
+            mCaps.innerHTML = "<span class='text-red-400 italic font-bold'>Not Supported</span>";
         }
     }
 
@@ -171,18 +180,34 @@
         return Object.entries(obj).map(([k, v]) => `
             <div class="flex justify-between border-b border-white/5 py-1">
                 <span class="json-key text-[10px]">${k}</span>
-                <span class="json-val text-right">${JSON.stringify(v)}</span>
+                <span class="json-val text-right text-[10px]">${JSON.stringify(v)}</span>
             </div>`).join('');
     }
 
     async function checkWebXR() {
+        const sup = document.getElementById('xr-supported');
+        const rdy = document.getElementById('xr-ar-ready');
+        
         if (!navigator.xr) {
-            document.getElementById('xr-supported').textContent = "NO";
+            sup.textContent = "NO";
+            sup.className = "text-red-500 font-bold";
             return;
         }
-        document.getElementById('xr-supported').textContent = "YES";
+        sup.textContent = "YES";
+        sup.className = "text-emerald-400 font-bold";
+        
         const ar = await navigator.xr.isSessionSupported('immersive-ar');
-        document.getElementById('xr-ar-ready').textContent = ar ? "YES" : "NO";
+        rdy.textContent = ar ? "YES" : "NO";
+        rdy.className = ar ? "text-emerald-400 font-bold" : "text-red-500 font-bold";
+    }
+
+    function checkARQuickLook() {
+        const qlEl = document.getElementById('ar-ql');
+        const a = document.createElement("a");
+        const isSupported = !!(a.relList && a.relList.supports && a.relList.supports("ar"));
+        
+        qlEl.textContent = isSupported ? "SUPPORTED" : "NO";
+        qlEl.className = isSupported ? "text-emerald-400 font-bold" : "text-slate-500 font-bold";
     }
 
     document.getElementById('checkXrBtn').addEventListener('click', async () => {
@@ -194,8 +219,13 @@
                 depthSensing: { usagePreference: ["cpu-optimized"], dataFormatPreference: ["luminance-alpha"] }
             });
             dEl.textContent = "VERIFIED";
+            dEl.className = "text-emerald-400 font-bold shadow-sm";
+            document.getElementById('xr-card').classList.add('xr-active');
             await session.end();
-        } catch (e) { dEl.textContent = "NOT FOUND"; }
+        } catch (e) { 
+            dEl.textContent = "NOT FOUND"; 
+            dEl.className = "text-red-400 font-bold";
+        }
     });
 
     initBtn.addEventListener('click', init);

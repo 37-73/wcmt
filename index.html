@@ -61,6 +61,12 @@
 
         <div class="space-y-4">
             <div class="metric-card p-5 rounded-2xl space-y-4">
+                
+                <div class="p-3 bg-slate-900/80 rounded-lg border border-blue-500/30">
+                    <div class="text-[10px] text-blue-400 uppercase font-black mb-1 tracking-widest">Active Track Label</div>
+                    <div id="m-label" class="text-xs font-mono font-bold text-white truncate italic">Waiting for stream...</div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800 text-center">
                         <div class="text-[10px] text-slate-500 uppercase font-bold">Res</div>
@@ -116,6 +122,7 @@
     const cameraSelect = document.getElementById('cameraSelect');
     const mRes = document.getElementById('m-res');
     const mFps = document.getElementById('m-fps');
+    const mLabel = document.getElementById('m-label'); // Reference to the new display
     const mSettings = document.getElementById('m-settings');
     const mCaps = document.getElementById('m-caps');
     const statusText = document.getElementById('statusText');
@@ -163,6 +170,8 @@
         if (!currentStream) return;
         const track = currentStream.getVideoTracks()[0];
         
+        mLabel.textContent = track.label || "No Label Detected";
+        
         const settings = track.getSettings();
         mRes.textContent = `${settings.width}x${settings.height}`;
         mFps.textContent = Math.round(settings.frameRate || 0);
@@ -187,15 +196,8 @@
     async function checkWebXR() {
         const sup = document.getElementById('xr-supported');
         const rdy = document.getElementById('xr-ar-ready');
-        
-        if (!navigator.xr) {
-            sup.textContent = "NO";
-            sup.className = "text-red-500 font-bold";
-            return;
-        }
-        sup.textContent = "YES";
-        sup.className = "text-emerald-400 font-bold";
-        
+        if (!navigator.xr) { sup.textContent = "NO"; sup.className = "text-red-500 font-bold"; return; }
+        sup.textContent = "YES"; sup.className = "text-emerald-400 font-bold";
         const ar = await navigator.xr.isSessionSupported('immersive-ar');
         rdy.textContent = ar ? "YES" : "NO";
         rdy.className = ar ? "text-emerald-400 font-bold" : "text-red-500 font-bold";
@@ -205,7 +207,6 @@
         const qlEl = document.getElementById('ar-ql');
         const a = document.createElement("a");
         const isSupported = !!(a.relList && a.relList.supports && a.relList.supports("ar"));
-        
         qlEl.textContent = isSupported ? "SUPPORTED" : "NO";
         qlEl.className = isSupported ? "text-emerald-400 font-bold" : "text-slate-500 font-bold";
     }

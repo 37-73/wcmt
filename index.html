@@ -15,17 +15,15 @@
         }
         #videoFeed { width: 100%; height: auto; background: #000; }
         .metric-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        pre { font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace; }
-        select option { background: #1e293b; color: white; }
+        .xr-active { border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .json-key { color: #94a3b8; font-weight: bold; }
+        .json-val { color: #93c5fd; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen p-4 md:p-8">
 
 <div class="max-w-6xl mx-auto space-y-6">
     <div class="flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-black text-white italic uppercase tracking-tighter">Camera Lab</h1>
-        </div>
         <div id="status" class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800">
             <span id="statusDot" class="w-3 h-3 rounded-full bg-red-500"></span>
             <span id="statusText" class="text-xs font-bold uppercase tracking-wider text-slate-300">Wait for Init</span>
@@ -44,7 +42,7 @@
             <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Input Device</label>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Select Input Device</label>
                         <select id="cameraSelect" class="w-full bg-slate-800 text-white p-3 rounded-xl outline-none border border-slate-700 focus:border-blue-500 transition-all appearance-none cursor-pointer">
                             <option value="">--- Click INIT DEVICES first ---</option>
                         </select>
@@ -59,8 +57,6 @@
         </div>
 
         <div class="space-y-4">
-            <h2 class="text-sm font-black text-slate-500 uppercase tracking-widest px-2">Live Stream Data</h2>
-
             <div class="metric-card p-5 rounded-2xl space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800 text-center">
@@ -74,37 +70,42 @@
                 </div>
 
                 <div class="space-y-2">
-                    <div class="text-[10px] text-slate-500 uppercase font-bold px-1">Settings (getSettings)</div>
-                    <div id="m-settings" class="text-[11px] font-mono bg-black/40 p-4 rounded-xl border border-slate-800 overflow-x-auto text-slate-300 leading-relaxed max-h-[200px] overflow-y-auto">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold px-1">Active Settings (getSettings)</div>
+                    <div id="m-settings" class="text-[11px] font-mono bg-black/40 p-3 rounded-xl border border-slate-800 overflow-y-auto max-h-[120px]">
                         No active stream.
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <div class="text-[10px] text-slate-500 uppercase font-bold px-1">Capabilities</div>
-                    <div id="m-caps" class="text-[11px] font-mono bg-black/40 p-4 rounded-xl border border-slate-800 overflow-x-auto text-slate-400 italic leading-relaxed max-h-[200px] overflow-y-auto">
+                    <div class="text-[10px] text-blue-500 uppercase font-bold px-1 tracking-widest">Hardware Capabilities</div>
+                    <div id="m-caps" class="text-[11px] font-mono bg-black/40 p-3 rounded-xl border border-slate-800 overflow-y-auto max-h-[180px]">
                         Locked.
                     </div>
                 </div>
             </div>
 
-            <button id="saveBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/20 uppercase tracking-tighter flex items-center justify-center gap-2 group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Capture & Save Report
+            <div id="xr-card" class="metric-card p-5 rounded-2xl space-y-4 border-l-4 border-l-slate-800">
+                <div class="text-[10px] text-emerald-500 uppercase font-black px-1 tracking-widest">Spatial Analysis (WebXR)</div>
+                <div class="space-y-1 text-[11px] font-mono">
+                    <div class="flex justify-between py-1"><span>API:</span><span id="xr-supported" class="text-slate-400">?</span></div>
+                    <div class="flex justify-between py-1"><span>AR Ready:</span><span id="xr-ar-ready" class="text-slate-400">?</span></div>
+                    <div class="flex justify-between py-1"><span>Depth Sens:</span><span id="xr-depth" class="text-slate-400">?</span></div>
+                </div>
+                <button id="checkXrBtn" class="w-full py-3 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-500 text-[10px] font-black uppercase rounded-xl transition-all">
+                    Run Depth Probe
+                </button>
+            </div>
+
+            <button id="saveBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all shadow-lg uppercase tracking-tighter">
+                Save Forensic Report
             </button>
-            <p class="text-[9px] text-slate-500 text-center px-4">Saves current frame as JPG and full metadata as JSON for forensic documentation.</p>
         </div>
     </div>
 </div>
 
-<canvas id="captureCanvas" class="hidden"></canvas>
-
 <script>
     const video = document.getElementById('videoFeed');
     const initBtn = document.getElementById('initBtn');
-    const saveBtn = document.getElementById('saveBtn');
     const cameraSelect = document.getElementById('cameraSelect');
     const mRes = document.getElementById('m-res');
     const mFps = document.getElementById('m-fps');
@@ -112,18 +113,13 @@
     const mCaps = document.getElementById('m-caps');
     const statusText = document.getElementById('statusText');
     const statusDot = document.getElementById('statusDot');
-    const audioBar = document.getElementById('audioBar');
-    const canvas = document.getElementById('captureCanvas');
-
+    
     let currentStream;
 
     async function init() {
         try {
-            statusText.textContent = "Requesting permission...";
+            statusText.textContent = "Requesting...";
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
-            await new Promise(r => setTimeout(r, 800));
-
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoInputs = devices.filter(d => d.kind === 'videoinput');
 
@@ -131,144 +127,79 @@
             videoInputs.forEach(d => {
                 const opt = document.createElement('option');
                 opt.value = d.deviceId;
-                opt.text = d.label || `Unknown Camera (${d.deviceId.slice(0,5)})`;
+                opt.text = d.label || `Camera ${d.deviceId.slice(0,5)}`;
                 cameraSelect.appendChild(opt);
             });
 
             stream.getTracks().forEach(t => t.stop());
-            if (videoInputs.length > 0) {
-                start(videoInputs[0].deviceId);
-            }
-
-            initBtn.textContent = "Refresh Device List";
-        } catch (e) {
-            statusText.textContent = "Access Denied";
-            console.error(e);
-        }
+            if (videoInputs.length > 0) start(videoInputs[0].deviceId);
+            checkWebXR();
+        } catch (e) { statusText.textContent = "Denied"; }
     }
 
     async function start(id) {
         if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-
         try {
             currentStream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    deviceId: { exact: id },
-                    width: { ideal: 4096 },
-                    height: { ideal: 2160 }
-                },
+                video: { deviceId: { exact: id }, width: { ideal: 4096 } },
                 audio: true
             });
             video.srcObject = currentStream;
-
             statusDot.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]";
-
-            setTimeout(updateMetrics, 800);
-            initAudioMeter(currentStream);
-        } catch (e) {
-            console.error("Start failed:", e);
-            statusText.textContent = "Err: Connection failed";
-        }
+            setTimeout(updateAnalysis, 800);
+        } catch (e) { statusText.textContent = "Stream Error"; }
     }
 
-    function updateMetrics() {
+    function updateAnalysis() {
         if (!currentStream) return;
         const track = currentStream.getVideoTracks()[0];
+        
         const settings = track.getSettings();
-        const caps = track.getCapabilities ? track.getCapabilities() : { info: "Capabilities API not supported in this browser" };
-
         mRes.textContent = `${settings.width}x${settings.height}`;
         mFps.textContent = Math.round(settings.frameRate || 0);
-        statusText.textContent = "Live: " + (settings.deviceId.slice(0,8));
+        mSettings.innerHTML = formatObject(settings);
 
-        mSettings.innerHTML = formatJSON(settings);
-        mCaps.innerHTML = formatJSON(caps);
-    }
-
-    function formatJSON(obj) {
-        return Object.entries(obj)
-            .map(([key, val]) => `
-                    <div class="flex justify-between border-b border-white/5 py-1.5 px-1">
-                        <span class="text-slate-500 font-bold">${key}</span>
-                        <span class="text-blue-300 text-right break-all ml-4">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
-                    </div>
-                `).join('');
-    }
-
-    async function saveReport() {
-        if (!currentStream) return;
-
-        const track = currentStream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        const caps = track.getCapabilities ? track.getCapabilities() : { error: "N/A" };
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const deviceName = (track.label || 'camera').replace(/[^a-z0-9]/gi, '_');
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const imageData = canvas.toDataURL('image/jpeg', 0.95);
-        const imgLink = document.createElement('a');
-        imgLink.href = imageData;
-        imgLink.download = `LAB_SNAP_${deviceName}_${timestamp}.jpg`;
-        imgLink.click();
-
-        const report = {
-            lab_report: {
-                date: new Date().toLocaleString(),
-                browser: navigator.userAgent,
-                device_label: track.label
-            },
-            stream_settings: settings,
-            hardware_capabilities: caps
-        };
-
-        const blob = new Blob([JSON.stringify(report, null, 4)], { type: 'application/json' });
-        const jsonLink = document.createElement('a');
-        jsonLink.href = URL.createObjectURL(blob);
-        jsonLink.download = `LAB_META_${deviceName}_${timestamp}.json`;
-        jsonLink.click();
-
-        // UI Feedback
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = "✓ DATA EXPORTED";
-        saveBtn.classList.replace('bg-emerald-600', 'bg-white');
-        saveBtn.classList.replace('text-white', 'text-slate-900');
-
-        setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.classList.replace('bg-white', 'bg-emerald-600');
-            saveBtn.classList.replace('text-slate-900', 'text-white');
-        }, 2000);
-    }
-
-    function initAudioMeter(stream) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-
-        const ctx = new AudioContext();
-        const source = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 64;
-        source.connect(analyser);
-        const data = new Uint8Array(analyser.frequencyBinCount);
-
-        function step() {
-            if (!currentStream || currentStream.getAudioTracks().length === 0) return;
-            analyser.getByteFrequencyData(data);
-            const avg = data.reduce((a,b) => a+b) / data.length;
-            audioBar.style.width = Math.min(avg * 1.5, 100) + "%";
-            requestAnimationFrame(step);
+        if (track.getCapabilities) {
+            const caps = track.getCapabilities();
+            mCaps.innerHTML = formatObject(caps);
+        } else {
+            mCaps.innerHTML = "<span class='text-red-400 italic'>Capabilities API not supported by this browser.</span>";
         }
-        step();
     }
+
+    function formatObject(obj) {
+        return Object.entries(obj).map(([k, v]) => `
+            <div class="flex justify-between border-b border-white/5 py-1">
+                <span class="json-key text-[10px]">${k}</span>
+                <span class="json-val text-right">${JSON.stringify(v)}</span>
+            </div>`).join('');
+    }
+
+    async function checkWebXR() {
+        if (!navigator.xr) {
+            document.getElementById('xr-supported').textContent = "NO";
+            return;
+        }
+        document.getElementById('xr-supported').textContent = "YES";
+        const ar = await navigator.xr.isSessionSupported('immersive-ar');
+        document.getElementById('xr-ar-ready').textContent = ar ? "YES" : "NO";
+    }
+
+    document.getElementById('checkXrBtn').addEventListener('click', async () => {
+        const dEl = document.getElementById('xr-depth');
+        dEl.textContent = "PROBING...";
+        try {
+            const session = await navigator.xr.requestSession('immersive-ar', {
+                requiredFeatures: ['depth-sensing'],
+                depthSensing: { usagePreference: ["cpu-optimized"], dataFormatPreference: ["luminance-alpha"] }
+            });
+            dEl.textContent = "VERIFIED";
+            await session.end();
+        } catch (e) { dEl.textContent = "NOT FOUND"; }
+    });
 
     initBtn.addEventListener('click', init);
     cameraSelect.addEventListener('change', () => start(cameraSelect.value));
-    saveBtn.addEventListener('click', saveReport);
 </script>
-
 </body>
 </html>
